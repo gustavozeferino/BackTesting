@@ -1,0 +1,62 @@
+- nome: Base
+  params:
+    n_contratos: 2
+    verbose: false
+
+- nome: Parcial Risco 0.5
+  params:
+    n_contratos: 2
+    verbose: false
+    tipo_parcial: risco
+    valores_parciais: [0.5]
+
+- nome: Parcial Risco 1.0
+  params:
+    n_contratos: 2
+    verbose: false
+    tipo_parcial: risco
+    valores_parciais: [1.0]
+
+- nome: Parcial Risco 1.25
+  params:
+    n_contratos: 2
+    verbose: false
+    tipo_parcial: risco
+    valores_parciais: [1.25]
+
+- nome: Parcial Risco 1.50
+  params:
+    n_contratos: 2
+    verbose: false
+    tipo_parcial: risco
+    valores_parciais: [1.50]
+
+- nome: Parcial Risco 1.75
+  params:
+    n_contratos: 2
+    verbose: false
+    tipo_parcial: risco
+    valores_parciais: [1.75]
+
+- nome: Parcial Risco 2.0
+  params:
+    n_contratos: 2
+    verbose: false
+    tipo_parcial: risco
+    valores_parciais: [2.0]
+
+- nome: Parcial Risco 2.5
+  params:
+    n_contratos: 2
+    verbose: false
+    tipo_parcial: risco
+    valores_parciais: [2.5]
+
+- nome: Parcial Risco 3.0
+  params:
+    n_contratos: 2
+    verbose: false
+    tipo_parcial: risco
+    valores_parciais: [3.0]
+
+

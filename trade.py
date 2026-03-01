@@ -343,3 +343,66 @@ def detalhar_trades(lista_trades):
         print(row)
 
     print("="*150 + "\n")
+
+
+def exportar_trades_para_excel(lista_trades, arquivo_excel):
+    """
+    Converte a lista de trades em uma planilha Excel organizada.
+    """
+
+    if not lista_trades:
+        print("Nenhum trade encontrado.")
+        return
+
+    linhas = []
+
+    for i, t in enumerate(lista_trades, 1):
+        dir_str = "C" if t.direcao == 1 else "V"
+        risco   = t.risco_pontos
+        data    = t.hora_entrada.strftime('%Y-%m-%d')
+        hora    = t.hora_entrada.strftime('%H:%M')
+        entrada = t.ponto_entrada
+        saida_f = t.ponto_saida_medio
+        duracao = t.duracao
+        
+        # Calcular pontos individuais das parciais
+        parciais_pts = []
+        for p_saida, h_saida, q in t.saidas:
+            if t.direcao == 1:
+                pts_unit = (p_saida - t.ponto_entrada)
+            else:
+                pts_unit = (t.ponto_entrada - p_saida)
+
+            for _ in range(q):
+                parciais_pts.append(pts_unit)
+
+        # Garantir 3 colunas de parciais
+        while len(parciais_pts) < 3:
+            parciais_pts.append(None)
+
+        linha = {
+            "Nº": i,
+            "Data": data,
+            "Hora": hora,
+            "Direção": dir_str,
+            "Risco (pts)": risco,
+            "Entrada": entrada,
+            "Saída Final": saida_f,
+            "Duração (min)": duracao,
+            "P1 (pts)": parciais_pts[0],
+            "P2 (pts)": parciais_pts[1],
+            "P3 (pts)": parciais_pts[2],
+            "Total (pts)": t.pontos_totais,
+            "MFE": t.MFE,
+            "MAE": t.MAE
+        }
+
+        linhas.append(linha)
+
+    # Criar DataFrame
+    df = pd.DataFrame(linhas)
+
+    # Exportar para Excel
+    df.to_excel(arquivo_excel, index=False)
+
+    print(f"Arquivo Excel gerado com sucesso: {arquivo_excel}")

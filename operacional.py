@@ -3,6 +3,7 @@ import math
 from datetime import time
 from db_manager import load_from_sqlite_to_pandas
 from trade import Trade, gerar_relatorio_estatistico, imprimir_stats, ajustar_preco_stop, detalhar_dia, comparar_resultados, detalhar_trades
+from trade import exportar_trades_para_excel
 import json
 import yaml
 import os
@@ -157,12 +158,9 @@ if __name__ == "__main__":
     df.loc[(df['SQD'] == 'V') & (df['SQD'].shift(1) == 'C'), 'Sinal'] = -1
     
     # Executar vários testes
-    arquivo_config = "testes.yml"
+    arquivo_config = "testes_risco.yml"
     executar_testes(df, arquivo_config)
 
-    # Detalhar um dia específico (Exemplo: primeiro dia com trades)
-    #if op_parcial_risco_2:
-    #    dia_exemplo = '2026-02-19'
-    #    #detalhar_dia(op_parcial_risco_2, dia_exemplo)
-    #    detalhar_trades(op_parcial_risco_2)
-    
+    #resultado_base = simular_operacional(df, n_contratos=2, verbose=False)
+    #if resultado_base:
+    #    exportar_trades_para_excel(resultado_base, "trades_base.xlsx")
