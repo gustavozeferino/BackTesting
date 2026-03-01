@@ -1,0 +1,59 @@
+# ── Ambientes virtuais ──────────────────────────────────────────────
+.venv/
+venv/
+env/
+ENV/
+.env/
+
+# ── Cache do Python ──────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+
+# ── Distribuição / build ─────────────────────────────────────────────
+dist/
+build/
+*.egg-info/
+*.egg
+.eggs/
+
+# ── Banco de dados SQLite ────────────────────────────────────────────
+*.sqlite
+*.sqlite3
+*.db
+
+# ── Jupyter Notebook checkpoints ─────────────────────────────────────
+.ipynb_checkpoints/
+
+# ── IDEs e editores ──────────────────────────────────────────────────
+.idea/
+.vscode/
+*.suo
+*.user
+*.ipr
+*.iml
+
+# ── Variáveis de ambiente ─────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ── Logs e relatórios ────────────────────────────────────────────────
+*.log
+*.out
+*.err
+
+# ── Arquivos de dados sensíveis / grandes ────────────────────────────
+data/
+
+# ── macOS / Windows ──────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── mypy / pytest / cobertura ────────────────────────────────────────
+.mypy_cache/
+.pytest_cache/
+.coverage
+htmlcov/
