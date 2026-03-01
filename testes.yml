@@ -1,0 +1,32 @@
+- nome: Base
+  params:
+    n_contratos: 3
+    verbose: false
+
+- nome: Uma Parcial Fixa de 300
+  params:
+    n_contratos: 3
+    verbose: false
+    tipo_parcial: fixa
+    valores_parciais: [300]
+
+- nome: Duas Parciais Fixas de 300 e 600
+  params:
+    n_contratos: 3
+    verbose: false
+    tipo_parcial: fixa
+    valores_parciais: [300, 600]
+
+- nome: Uma Parcial por Risco de 2
+  params:
+    n_contratos: 3
+    verbose: false
+    tipo_parcial: risco
+    valores_parciais: [2]
+
+- nome: Duas Parciais por Risco de 2 e 3
+  params:
+    n_contratos: 3
+    verbose: false
+    tipo_parcial: risco
+    valores_parciais: [2, 3]

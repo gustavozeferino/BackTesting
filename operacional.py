@@ -3,6 +3,23 @@ import math
 from datetime import time
 from db_manager import load_from_sqlite_to_pandas
 from trade import Trade, gerar_relatorio_estatistico, imprimir_stats, ajustar_preco_stop, detalhar_dia, comparar_resultados, detalhar_trades
+import json
+import yaml
+import os
+
+def carregar_configuracoes(arquivo):
+    ext = os.path.splitext(arquivo)[1].lower()
+
+    if ext == ".json":
+        with open(arquivo, "r", encoding="utf-8") as f:
+            return json.load(f)
+
+    elif ext in (".yml", ".yaml"):
+        with open(arquivo, "r", encoding="utf-8") as f:
+            return yaml.safe_load(f)
+
+    else:
+        raise ValueError("Formato não suportado. Use JSON ou YAML.")
 
 
 def simular_operacional(timeframe_data, verbose=False, n_contratos=3, tipo_parcial='risco', valores_parciais=None):
@@ -109,6 +126,26 @@ def simular_operacional(timeframe_data, verbose=False, n_contratos=3, tipo_parci
 
     return operacoes
 
+def executar_testes(df, arquivo_config):
+    configuracoes = carregar_configuracoes(arquivo_config)
+
+    resumos = []
+    nomes_estrategias = []
+
+    for cfg in configuracoes:
+        nome = cfg["nome"]
+        params = cfg["params"]
+
+        print(f"Executando Operacional: {nome}")
+        resultado = simular_operacional(df, **params)
+
+        resumo, resumo_diario = gerar_relatorio_estatistico(resultado)
+
+        resumos.append(resumo)
+        nomes_estrategias.append(nome)
+
+    comparar_resultados(resumos, nomes_estrategias)
+
 
 if __name__ == "__main__":
     df = load_from_sqlite_to_pandas().sort_values('Data').reset_index(drop=True)
@@ -119,56 +156,13 @@ if __name__ == "__main__":
     df.loc[(df['SQD'] == 'C') & (df['SQD'].shift(1) == 'V'), 'Sinal'] = 1
     df.loc[(df['SQD'] == 'V') & (df['SQD'].shift(1) == 'C'), 'Sinal'] = -1
     
-    resumos = []
-    nomes_estrategias = []
-
-    print("Executando Operacional Clássico (Simples)...")
-    op_base = simular_operacional(df, n_contratos=3, verbose=False)
-    resumo_base, resumo_base_diario = gerar_relatorio_estatistico(op_base)
-    resumos.append(resumo_base)
-    nomes_estrategias.append('Base')
-
-    print("Executando Operacional com Parciais fixa 300")
-    op_parcial_fixa = simular_operacional(df, verbose=False, n_contratos=3, tipo_parcial='fixa', valores_parciais=[300])
-    resumo_parcial_fixa, resumo_parcial_fixa_diario = gerar_relatorio_estatistico(op_parcial_fixa)
-    resumos.append(resumo_parcial_fixa)
-    nomes_estrategias.append('Uma Parcial Fixa de 300')
-
-    print("Executando Operacional com Parciais fixas 300 e 600")
-    op_parciais_fixas = simular_operacional(df, verbose=False, n_contratos=3, tipo_parcial='fixa', valores_parciais=[300, 600])
-    resumo_parciais_fixas, resumo_parciais_fixas_diario = gerar_relatorio_estatistico(op_parciais_fixas)
-    resumos.append(resumo_parciais_fixas)
-    nomes_estrategias.append('Duas Parciais Fixas de 300 e 600')
-
-    print("Executando Operacional com Parciais fixas 300 e 300")
-    op_parciais_fixas = simular_operacional(df, verbose=False, n_contratos=3, tipo_parcial='fixa', valores_parciais=[300, 300])
-    resumo_parciais_fixas, resumo_parciais_fixas_diario = gerar_relatorio_estatistico(op_parciais_fixas)
-    resumos.append(resumo_parciais_fixas)
-    nomes_estrategias.append('Duas Parciais Fixas de 300 e 300')
-
-    print("Executando Operacional com Parcial Risco 2")
-    op_parcial_risco_2 = simular_operacional(df, verbose=False, n_contratos=3, tipo_parcial='risco', valores_parciais=[2])
-    resumo_parcial_risco_2, resumo_parcial_risco_2_diario = gerar_relatorio_estatistico(op_parcial_risco_2)
-    resumos.append(resumo_parcial_risco_2)
-    nomes_estrategias.append('Uma Parcial Risco 2')
-
-    print("Executando Operacional com Parciais Por Risco 2 e 3")
-    op_parciais_risco = simular_operacional(df, verbose=False, n_contratos=3, tipo_parcial='risco', valores_parciais=[2, 3])
-    resumo_parciais_risco, resumo_parciais_risco_diario = gerar_relatorio_estatistico(op_parciais_risco)
-    resumos.append(resumo_parciais_risco)
-    nomes_estrategias.append('Duas Parciais Risco 2 e 3')
-
-    print("Executando Operacional com Parciais Por Risco 2 e 2")
-    op_parciais_risco = simular_operacional(df, verbose=False, n_contratos=3, tipo_parcial='risco', valores_parciais=[2, 2])
-    resumo_parciais_risco, resumo_parciais_risco_diario = gerar_relatorio_estatistico(op_parciais_risco)
-    resumos.append(resumo_parciais_risco)
-    nomes_estrategias.append('Duas Parciais Risco 2 e 2')
-
-    comparar_resultados(resumos, nomes_estrategias)
+    # Executar vários testes
+    arquivo_config = "testes.yml"
+    executar_testes(df, arquivo_config)
 
     # Detalhar um dia específico (Exemplo: primeiro dia com trades)
-    if op_parcial_risco_2:
-        dia_exemplo = '2026-02-19'
-        #detalhar_dia(op_parcial_risco_2, dia_exemplo)
-        detalhar_trades(op_parcial_risco_2)
+    #if op_parcial_risco_2:
+    #    dia_exemplo = '2026-02-19'
+    #    #detalhar_dia(op_parcial_risco_2, dia_exemplo)
+    #    detalhar_trades(op_parcial_risco_2)
     
