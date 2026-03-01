@@ -1,7 +1,10 @@
 ## Melhorias no código atual
 * Em cada trade, incluir informações adicionais no formato chave-valor. Por exemplo, podem ser inseridas informações de outros indicadores no momento da abertura do trade. Estas informações serão exibidas na rotina que imprime as informações de cada trade (uma linha por trade).
 * Escrever uma rotina para imprimir e/ou salvar em CSV as informações de todos os trades de todos os dias (um trade por linha) com as informações adicionais inseridas no formato chave-valor.
-A ideia aqui é ter uma tabela com todos os trades realizados na base de trading para poder fazer análises.
+* A ideia aqui é ter uma tabela com todos os trades realizados na base de trading para poder fazer análises.
+* Adicionar a opção de trailing stop:
+    * O trailing stop deve ser acionado quando o trade atingir a primeira parcial e ir para o ponto de entrada.
+    * O trailing stop deve ser acionado quando o trade atingir a primeira parcial e ir sendo ajustado a cada parcial.
 
 ## Melhorias futuras
 *	Pegar base de trading de TFs diferentes e unir na base de dados de TF menoros indicadores dos TF’s maiores. Exemplo, anexar o SQ e OBV do 2’, 5’, 10’, 15’, 30’, 60’

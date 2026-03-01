@@ -133,6 +133,7 @@ class Trade:
     def to_dict(self):
         return {
             'direcao': 'Compra' if self.direcao == 1 else 'Venda',
+            'risco': self.risco_pontos,
             'entrada': self.ponto_entrada,
             'saida': self.ponto_saida,
             'saida_media': self.ponto_saida_medio,
@@ -187,6 +188,42 @@ def gerar_relatorio_estatistico(lista_trades):
 
     return stats_globais, resumo_diario
 
+
+def comparar_resultados(resultados, nomes=None):
+    """
+    Compara dois ou mais dataframes de resumo diário gerados por `gerar_relatorio_estatistico`.
+    Cada dataframe deve conter as colunas: 'Data', 'qtd_trades', 'saldo_pontos', 'mfe_medio', 'mae_medio'.
+    O parâmetro `nomes` deve ser uma lista com o nome a ser exibido para cada resumo.
+    Se a lista for vazia ou None, os nomes serão gerados como "Operacional 1", "Operacional 2", ...
+    A função imprime uma tabela onde a primeira coluna é o nome e as demais colunas são os
+    valores numéricos alinhados à direita.
+    """
+    if not resultados:
+        print("Nenhum resumo fornecido.")
+        return
+
+    if nomes is None or len(nomes) == 0:
+        nomes = [f"Operacional {i+1}" for i in range(len(resultados))]
+    elif len(nomes) != len(resultados):
+        print("A quantidade de nomes não corresponde ao número de resumos.")
+        return
+
+    linhas = []
+
+    for resultado, nome in zip(resultados, nomes):
+        linha = pd.DataFrame([resultado])
+        linha.insert(0, "Operacional", nome)
+        linhas.append(linha)
+
+    tabela = pd.concat(linhas, ignore_index=True)
+
+    # Ordena colunas para garantir ordem desejada
+    # cols = ["Operacional"] + [c for c in tabela.columns if c != "Operacional"]
+    # tabela = tabela[cols]
+
+    # Imprime com alinhamento à direita para números
+    print(tabela.to_string(index=False, justify='right'))
+
 def imprimir_stats(stats):
     if not stats: return
     print("\n" + "="*45)
@@ -211,12 +248,13 @@ def detalhar_dia(lista_trades, data_alvo):
     print("="*150)
     
     # Cabeçalho da Tabela
-    headers = f"{'#':>3} | {'Dir':<4} | {'Início':<8} | {'Entrada':>8} | {'Saída F':>8} | {'Dur':>6} | {'P1':>8} | {'P2':>8} | {'P3':>8} | {'Total':>10} | {'MFE':>8} | {'MAE':>8}"
+    headers = f"{'#':>3} | {'Dir':<4} | {'Risco':>8} | {'Início':<8} | {'Entrada':>8} | {'Saída F':>8} | {'Dur':>6} | {'P1':>8} | {'P2':>8} | {'P3':>8} | {'Total':>10} | {'MFE':>8} | {'MAE':>8}"
     print(headers)
     print("-" * 150)
 
     for i, t in enumerate(trades_do_dia, 1):
         dir_str = "C" if t.direcao == 1 else "V"
+        risco   = f"{t.risco_pontos:.0f}"
         inicio  = t.hora_entrada.strftime('%H:%M')
         entrada = f"{t.ponto_entrada:.0f}"
         saida_f = f"{t.ponto_saida_medio:.0f}"
@@ -246,7 +284,62 @@ def detalhar_dia(lista_trades, data_alvo):
         mfe   = f"{t.MFE:.1f}"
         mae   = f"{t.MAE:.1f}"
 
-        row = f"{i:>3} | {dir_str:<4} | {inicio:<8} | {entrada:>8} | {saida_f:>8} | {duracao:>6} | {p1:>8} | {p2:>8} | {p3:>8} | {total:>10} | {mfe:>8} | {mae:>8}"
+        row = f"{i:>3} | {dir_str:<4} | {risco:<8} | {inicio:<8} | {entrada:>8} | {saida_f:>8} | {duracao:>6} | {p1:>8} | {p2:>8} | {p3:>8} | {total:>10} | {mfe:>8} | {mae:>8}"
+        print(row)
+
+    print("="*150 + "\n")
+
+def detalhar_trades(lista_trades):
+    """
+    Mostra detalhes de todos os trades de um dia específico em formato de tabela.
+    """
+    if not lista_trades:
+        print("\nNenhum trade encontrado.")
+        return
+
+    print("\n" + "="*150)
+    print(" " * 65 + "RELATÓRIO DE TRADES")
+    print("="*150)
+    
+    # Cabeçalho da Tabela
+    headers = f"{'#':>3} | {'Data':<10} | {'Hora':<8} | {'Dir':<4} | {'Risco':>8} | {'Entrada':>8} | {'Saída F':>8} | {'Dur':>6} | {'P1':>8} | {'P2':>8} | {'P3':>8} | {'Total':>10} | {'MFE':>8} | {'MAE':>8}"
+    print(headers)
+    print("-" * 150)
+
+    for i, t in enumerate(lista_trades, 1):
+        dir_str = "C" if t.direcao == 1 else "V"
+        risco   = f"{t.risco_pontos:.0f}"
+        data    = t.hora_entrada.strftime('%Y-%m-%d')
+        hora_inicio  = t.hora_entrada.strftime('%H:%M')
+        entrada = f"{t.ponto_entrada:.0f}"
+        saida_f = f"{t.ponto_saida_medio:.0f}"
+        duracao = f"{t.duracao:.1f}"
+        
+        # Calcular pontos individuais das parciais para exibir nas colunas
+        parciais_pts = []
+        for p_saida, h_saida, q in t.saidas:
+            if t.direcao == 1:
+                pts_unit = (p_saida - t.ponto_entrada)
+            else:
+                pts_unit = (t.ponto_entrada - p_saida)
+            
+            # Se saiu mais de um contrato no mesmo ponto (ex: stop final), 
+            # distribuímos o valor nas colunas de parciais restantes
+            for _ in range(q):
+                parciais_pts.append(f"{pts_unit:.1f}")
+
+        # Preencher colunas vazias se houver menos de 3 contratos
+        while len(parciais_pts) < 3:
+            parciais_pts.append("-")
+            
+        p1    = parciais_pts[0]
+        p2    = parciais_pts[1]
+        p3    = parciais_pts[2]
+        total = f"{t.pontos_totais:.1f}"
+        mfe   = f"{t.MFE:.1f}"
+        mae   = f"{t.MAE:.1f}"
+
+        row = f"{i:>3} | {data:<10} | {hora_inicio:<8} | {dir_str:<4} | {risco:>8} | {entrada:>8} | {saida_f:>8} | {duracao:>6} | {p1:>8} | {p2:>8} | {p3:>8} | {total:>10} | {mfe:>8} | {mae:>8}"
         print(row)
 
     print("="*150 + "\n")
