@@ -59,4 +59,22 @@
     tipo_parcial: risco
     valores_parciais: [3.0]
 
+- nome: Com Break-Even 100pts
+  params:
+    n_contratos: 2
+    verbose: false
+    breakeven_pontos: 100
 
+- nome: Trailing 80pts
+  params:
+    n_contratos: 2
+    verbose: false
+    trailing_pontos: 80
+
+- nome: BreakEven + Trailing
+  params:
+    n_contratos: 2
+    verbose: false
+    breakeven_pontos: 100
+    trailing_pontos: 80
+    trailing_ativacao: 150

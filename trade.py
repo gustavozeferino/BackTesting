@@ -64,6 +64,12 @@ class Trade:
         self.MFE = 0
         self.MAE = 0
 
+        # Stop dinâmico e flags de gestão
+        self.ponto_stop_atual = ponto_stop   # Começa igual ao stop inicial; pode ser movido
+        self.breakeven_acionado = False
+        self.trailing_acionado = False
+        self.motivo_saida = ''               # 'STOP_LINHA' | 'BREAKEVEN' | 'TRAILING' | 'HORARIO'
+
     def update_statistics(self, candle):
         if self.direcao == 1:
             if candle['Max'] > self.extrema_favor: self.extrema_favor = candle['Max']
@@ -142,7 +148,11 @@ class Trade:
             'duracao_min': self.duracao,
             'pontos': self.pontos_totais,
             'mfe': self.MFE,
-            'mae': self.MAE
+            'mae': self.MAE,
+            'breakeven_acionado': self.breakeven_acionado,
+            'trailing_acionado': self.trailing_acionado,
+            'motivo_saida': self.motivo_saida,
+            'stop_final': self.ponto_stop_atual,
         }
 
 def gerar_relatorio_estatistico(lista_trades):
@@ -394,7 +404,10 @@ def exportar_trades_para_excel(lista_trades, arquivo_excel):
             "P3 (pts)": parciais_pts[2],
             "Total (pts)": t.pontos_totais,
             "MFE": t.MFE,
-            "MAE": t.MAE
+            "MAE": t.MAE,
+            "Motivo Saída": t.motivo_saida,
+            "Break-even": "Sim" if t.breakeven_acionado else "Não",
+            "Trailing": "Sim" if t.trailing_acionado else "Não",
         }
 
         linhas.append(linha)
