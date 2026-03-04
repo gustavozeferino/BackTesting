@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from trade import Trade, gerar_relatorio_estatistico
+from trade import Trade, gerar_relatorio_estatistico, gerar_estatisticas_completas, analisar_por_periodo
 import pandas as pd
 
 def test_estatisticas():
@@ -40,11 +40,13 @@ def test_estatisticas():
     
     # Gerar Relatório
     stats, resumo = gerar_relatorio_estatistico(trades)
+    stats_c, resumo_c = gerar_estatisticas_completas(trades)
+    df_periodos = analisar_por_periodo(trades)
     
-    print("\nEstatísticas Globais:")
-    print(stats)
-    print("\nResumo Diário:")
-    print(resumo)
+    print("\nEstatísticas Completas:")
+    print(stats_c)
+    print("\nResumo por Período:")
+    print(df_periodos)
     
     # Asserções Globais
     # Total pontos: 10 + 5 - 5 + 20 - 10 = 20
@@ -57,6 +59,20 @@ def test_estatisticas():
     assert stats['Total Pontos'] == 20
     assert stats['Win Rate (%)'] == 60.0
     assert stats['Profit Factor'] == 2.33
+    
+    # Completas
+    assert stats_c['Total Vencedores'] == 3
+    assert stats_c['Total Perdedores'] == 2
+    assert stats_c['Maior Sequência Ganhos'] == 2 # 10, 5 positivos
+    assert stats_c['Maior Vitória (pts)'] == 20
+    assert stats_c['Maior Derrota (pts)'] == -10
+    assert stats_c['Payoff Ratio'] == 1.56 # (35/3)/(15/2) = 11.66 / 7.5 = 1.555
+    
+    # Períodos
+    assert len(df_periodos) > 0
+    df_manha = df_periodos[df_periodos['periodo'] == 'MANHA']
+    assert df_manha['total_trades'].values[0] == 3 # t1(10h), t2(11h), t4(10h)
+    assert df_manha['total_pontos'].values[0] == 35 # 10 + 5 + 20
     
     # Asserções Diárias
     assert len(resumo) == 2

@@ -2,6 +2,9 @@
   params:
     n_contratos: 2
     verbose: false
+    horario_inicial: "09:15:00"
+    horario_final: "17:00:00"
+    horario_encerramento: "18:00:00"
 
 - nome: Base com 100 pontos de breakeven
   params:
