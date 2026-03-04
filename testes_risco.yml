@@ -3,6 +3,36 @@
     n_contratos: 2
     verbose: false
 
+- nome: Base com 100 pontos de breakeven
+  params:
+    n_contratos: 2
+    verbose: false
+    breakeven_pontos: 100
+
+- nome: Base com 200 pontos de breakeven
+  params:
+    n_contratos: 2
+    verbose: false
+    breakeven_pontos: 200
+
+- nome: Base com 300 pontos de breakeven
+  params:
+    n_contratos: 2
+    verbose: false
+    breakeven_pontos: 300
+
+- nome: Base com 400 pontos de breakeven
+  params:
+    n_contratos: 2
+    verbose: false
+    breakeven_pontos: 400
+
+- nome: Base com 500 pontos de breakeven
+  params:
+    n_contratos: 2
+    verbose: false
+    breakeven_pontos: 500
+
 - nome: Parcial Risco 0.5
   params:
     n_contratos: 2
@@ -65,16 +95,34 @@
     verbose: false
     breakeven_pontos: 100
 
-- nome: Trailing 80pts
+- nome: Com Break-Even 200pts
   params:
     n_contratos: 2
     verbose: false
-    trailing_pontos: 80
+    breakeven_pontos: 200
+    tipo_parcial: risco
+    valores_parciais: [2.0]
 
-- nome: BreakEven + Trailing
+- nome: Com Break-Even 300pts
   params:
     n_contratos: 2
     verbose: false
-    breakeven_pontos: 100
-    trailing_pontos: 80
-    trailing_ativacao: 150
+    breakeven_pontos: 300
+    tipo_parcial: risco
+    valores_parciais: [2.0]
+
+- nome: Com Break-Even 400pts
+  params:
+    n_contratos: 2
+    verbose: false
+    breakeven_pontos: 400
+    tipo_parcial: risco
+    valores_parciais: [2.0]
+
+- nome: Com Break-Even 500pts
+  params:
+    n_contratos: 2
+    verbose: false
+    breakeven_pontos: 500
+    tipo_parcial: risco
+    valores_parciais: [2.0]

@@ -203,11 +203,11 @@ if __name__ == "__main__":
     df.loc[(df['SQD'] == 'V') & (df['SQD'].shift(1) == 'C'), 'Sinal'] = -1
     
     # Executar vários testes
-    #arquivo_config = "testes_risco.yml"
-    #executar_testes(df, arquivo_config)
+    arquivo_config = "testes_risco.yml"
+    executar_testes(df, arquivo_config)
 
-    resultado_base = simular_operacional(df, n_contratos=3, verbose=False, breakeven_pontos=200, tipo_parcial='risco', valores_parciais=[2,3])
-    res_global, res_diario = gerar_relatorio_estatistico(resultado_base)
-    imprimir_stats(res_global)
+    #resultado_base = simular_operacional(df, n_contratos=2, verbose=False, breakeven_pontos=200, tipo_parcial='risco', valores_parciais=[2])
+    #res_global, res_diario = gerar_relatorio_estatistico(resultado_base)
+    #imprimir_stats(res_global)
     #if resultado_base:
     #    exportar_trades_para_excel(resultado_base, "trades_base.xlsx")
