@@ -1,15 +1,10 @@
 {
-    "populacao": 1000,
-    "geracoes": 20,
+    "populacao": 2000,
+    "geracoes": 3,
     "restricoes": {
-        "min_trades": 30
+        "min_trades": 50
     },
     "parametros": {
-        "n_contratos": {
-            "min": 2,
-            "max": 2,
-            "step": 1
-        },
         "tipo_parcial": {
             "opcoes": [
                 "fixa",
@@ -17,28 +12,18 @@
             ]
         },
         "valores_parciais_f1": {
-            "min": 100,
-            "max": 1500,
-            "step": 50
-        },
-        "valores_parciais_f2": {
-            "min": 300,
+            "min": 600,
             "max": 3000,
-            "step": 100
+            "step": 300
         },
         "valores_parciais_r1": {
             "min": 0.5,
-            "max": 10.0,
-            "step": 0.5
-        },
-        "valores_parciais_r2": {
-            "min": 0.5,
-            "max": 10.0,
+            "max": 5.0,
             "step": 0.5
         },
         "breakeven_pontos": {
-            "min": 100,
-            "max": 1000,
+            "min": 200,
+            "max": 600,
             "step": 100
         },
         "stop_max": {
@@ -48,14 +33,14 @@
         },
         "horario_inicial": {
             "tipo": "hora",
-            "min": "09:00",
-            "max": "12:00",
+            "min": "9:00",
+            "max": "13:00",
             "step_minutos": 15
         },
         "horario_final": {
             "tipo": "hora",
             "min": "15:00",
-            "max": "17:30",
+            "max": "18:00",
             "step_minutos": 15
         }
     }

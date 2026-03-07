@@ -7,6 +7,7 @@ from src.engine.operacional import simular_operacional, executar_backtest_comple
 from src.analysis.analise_parametros import resumo_analises, analisar_distribuicao_mae_mfe
 from src.reports.relatorio_html import gerar_relatorio
 from src.engine.trade import gerar_estatisticas_completas, imprimir_stats
+from datetime import time
 
 def main():
     parser = argparse.ArgumentParser(description="BackTesting Framework - Professional CLI")
@@ -17,6 +18,8 @@ def main():
     parser.add_argument("--report", action="store_true", help="Generate HTML report from simulation results")
     parser.add_argument("--optimize", action="store_true", help="Run parameter optimization analysis (simple)")
     parser.add_argument("--ga", action="store_true", help="Run Genetic Algorithm optimizer (DEAP)")
+    parser.add_argument("--pop", type=int, default=None, help="Population size for GA (overrides config)")
+    parser.add_argument("--gen", type=int, default=None, help="Number of generations for GA (overrides config)")
     parser.add_argument("--workers", type=int, default=None, help="Number of CPU workers for GA (default: max)")
     parser.add_argument("--all", action="store_true", help="Run full workflow (run, optimize, report)")
     
@@ -59,7 +62,20 @@ def main():
 
     if args.run or args.all:
         print(f"Running simulation with {args.contracts} contracts...")
-        results = simular_operacional(df, **params)
+        #results = simular_operacional(df, **params)
+
+        results = simular_operacional(
+            df,
+            n_contratos=2,
+            verbose=False,
+            breakeven_pontos=200,
+            tipo_parcial=None,
+            valores_parciais=None,
+            stop_max=None,
+            horario_inicial=time(11, 45),
+            horario_final=time(17, 30),
+            horario_encerramento=time(18, 00))
+
         stats_c, resumo_d = gerar_estatisticas_completas(results)
         imprimir_stats(stats_c) 
         print(f"Simulation finished. {len(results)} trades executed.")
@@ -71,7 +87,7 @@ def main():
     if args.ga:
         print(f"\nStarting Genetic Algorithm Optimizer...")
         from src.analysis.otimizador import otimizar
-        otimizar(df, n_workers=args.workers)
+        otimizar(df, n_workers=args.workers, pop_size=args.pop, ngen=args.gen)
 
     if (args.report or args.all) and results:
         print(f"Generating HTML report: {args.output}")
@@ -81,7 +97,7 @@ def main():
         gerar_relatorio(results, args.output, args.title)
         print("Report ready.")
 
-    if not any([args.upload, args.run, args.report, args.optimize, args.all]):
+    if not any([args.upload, args.run, args.report, args.optimize, args.all, args.ga]):
         parser.print_help()
 
 if __name__ == "__main__":

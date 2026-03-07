@@ -275,15 +275,20 @@ if __name__ == "__main__":
         df,
         n_contratos=2,
         verbose=False,
-        breakeven_pontos=300,
+        breakeven_pontos=200,
         tipo_parcial=None,
         valores_parciais=None,
-        stop_max=600
-    )
-
+        stop_max=None,
+        horario_inicial=time(11, 45),
+        horario_final=time(17, 30),
+        horario_encerramento=time(18, 00))
 
     stats_c, resumo_d = gerar_estatisticas_completas(resultado_base)
     imprimir_stats(stats_c) 
     analisar_distribuicao_mae_mfe(resultado_base)
     # if resultado_base:
     #    exportar_trades_para_excel(resultado_base, "trades_base.xlsx")
+
+    output_html = '/output/relatorio_melhor_solucao.html'
+    gerar_relatorio(resultado_base, output_html, titulo="Solução com melhor fator de lucro")
+    print(f"\n[OK] Relatório HTML gerado: {output_html}")
