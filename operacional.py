@@ -34,7 +34,8 @@ def simular_operacional(timeframe_data,
                         breakeven_pontos=False,
                         horario_inicial=time(9, 15),
                         horario_final=time(17, 30),
-                        horario_encerramento=time(18, 00)):
+                        horario_encerramento=time(18, 00),
+                        stop_max=None):
     """
     Simula o operacional com parciais.
     """
@@ -44,6 +45,7 @@ def simular_operacional(timeframe_data,
     
     if valores_parciais is None and tipo_parcial == 'risco':
         valores_parciais = [1, 2, 3] # Default para o que era antes
+
     timeframe_data['Data'] = pd.to_datetime(timeframe_data['Data'])
     timeframe_data['Dia'] = timeframe_data['Data'].dt.date
     
@@ -154,30 +156,49 @@ def simular_operacional(timeframe_data,
                         p_stop = ajustar_preco_stop(sinal, candle['LinhaQuant'])
                         ordem_aberta = -1
 
-                # Verificar se a ordem aberta foi atingida
+                # --- BLOCO DE ABERTURA DE COMPRA ---
                 if ordem_aberta == 1:
                     if candle['SQD'] == "C":
                         if candle['Max'] >= p_entrada:
                             # Abriu operação de compra
-                            operacao_aberta = 1
+                            # Cálculo do risco original
+                            risco_original = abs(p_entrada - p_stop)
+                            # Lógica stop_max
+                            if stop_max is not None:
+                                risco_final = min(risco_original, stop_max)
+                                p_stop = p_entrada - risco_final # Ajusta o ponto de stop real
+
                             trade_atual = Trade(1, p_entrada, candle['Data'], p_stop, n_contratos, tipo_parcial, valores_parciais)
-                            ordem_aberta = 0
-                            if verbose:
-                                print("-"*50)
-                                print(f"Compra aberta: Entrada: {p_entrada} | Stop: {p_stop} | Risco: {trade_atual.risco_pontos}")
+
+                            if trade_atual:
+                                operacao_aberta = 1
+                                ordem_aberta = 0
+                                if verbose:
+                                    print("-"*50)
+                                    print(f"Compra aberta: Entrada: {p_entrada} | Stop: {p_stop} | Risco: {trade_atual.risco_pontos}")
                     else:
                         ordem_aberta = 0
 
+                # --- BLOCO DE ABERTURA DE VENDA ---
                 if ordem_aberta == -1:
                     if candle['SQD'] == "V":
                         if candle['Min'] <= p_entrada:
                             # Abriu operação de venda
-                            operacao_aberta = -1
+                            # Cálculo do risco original
+                            risco_original = abs(p_entrada - p_stop)
+                            # Lógica stop_max
+                            if stop_max is not None:
+                                risco_final = min(risco_original, stop_max)
+                                p_stop = p_entrada + risco_final # Ajusta o ponto de stop real
+
                             trade_atual = Trade(-1, p_entrada, candle['Data'], p_stop, n_contratos, tipo_parcial, valores_parciais)
-                            ordem_aberta = 0
-                            if verbose:
-                                print("-"*50)
-                                print(f"Venda aberta: Entrada: {p_entrada} | Stop: {p_stop} | Risco: {trade_atual.risco_pontos}")
+
+                            if trade_atual:
+                                operacao_aberta = -1
+                                ordem_aberta = 0
+                                if verbose:
+                                    print("-"*50)
+                                    print(f"Venda aberta: Entrada: {p_entrada} | Stop: {p_stop} | Risco: {trade_atual.risco_pontos}")
                     else:
                         ordem_aberta = 0
 
