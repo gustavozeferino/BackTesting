@@ -1,10 +1,11 @@
-from trade import Trade
+from src.engine.trade import Trade
 from datetime import datetime
 
 def test_partial_exits():
     # Setup trade: Compra, entrada 100, stop 90 (risco 10)
     # Alvos: 110 (1R), 120 (2R), 130 (3R)
-    t = Trade(direcao=1, ponto_entrada=100.0, hora_entrada=datetime(2026, 1, 1, 9, 15), ponto_stop=90.0, n_contratos=3)
+    t = Trade(direcao=1, ponto_entrada=100.0, hora_entrada=datetime(2026, 1, 1, 9, 15), 
+              ponto_stop=90.0, n_contratos=3, tipo_parcial='risco', valores_parciais=[1, 2, 3])
     
     print(f"Alvos calculados: {t.alvos}")
     assert t.alvos == [110.0, 120.0, 130.0]

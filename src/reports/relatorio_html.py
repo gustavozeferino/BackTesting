@@ -3,7 +3,7 @@ import numpy as np
 import base64
 import io
 import matplotlib.pyplot as plt
-from trade import gerar_estatisticas_completas, analisar_por_periodo
+from src.engine.trade import gerar_estatisticas_completas, analisar_por_periodo
 
 def fig_to_base64(fig):
     buf = io.BytesIO()

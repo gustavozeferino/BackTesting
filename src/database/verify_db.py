@@ -1,7 +1,7 @@
 import pandas as pd
 import os
-import config
-from db_manager import upload_excel_to_sqlite, load_from_sqlite_to_pandas
+from src.utils import config
+from src.database.db_manager import upload_excel_to_sqlite, load_from_sqlite_to_pandas
 
 # 1. Create Mock Data
 mock_data = {

@@ -13,10 +13,9 @@ sem depender do banco de dados ou do loop de operacional.py.
 import math
 import sys
 import os
-sys.path.insert(0, os.path.dirname(__file__))
 
 from datetime import datetime, timedelta
-from trade import Trade, ajustar_preco_stop
+from src.engine.trade import Trade, ajustar_preco_stop
 
 
 # ─── Helpers ──────────────────────────────────────────────────────────────────

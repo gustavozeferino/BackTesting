@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from trade import Trade
+from src.engine.trade import Trade
 
 def test_trade_compra():
     print("Testando Operação de Compra...")

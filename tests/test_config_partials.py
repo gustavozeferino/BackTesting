@@ -1,4 +1,4 @@
-from trade import Trade
+from src.engine.trade import Trade
 from datetime import datetime
 
 def test_config_partials():

@@ -1,8 +1,8 @@
 import pandas as pd
 import pandas as pd
 from datetime import datetime
-from trade import Trade
-from analise_parametros import analisar_stop_otimo, analisar_parcial_otima, analisar_breakeven_otimo
+from src.engine.trade import Trade
+from src.analysis.analise_parametros import analisar_stop_otimo, analisar_parcial_otima, analisar_breakeven_otimo
 
 def get_test_trades():
     trades = []

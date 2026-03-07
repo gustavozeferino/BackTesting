@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from trade import Trade, gerar_relatorio_estatistico, gerar_estatisticas_completas, analisar_por_periodo
+from src.engine.trade import Trade, gerar_relatorio_estatistico, gerar_estatisticas_completas, analisar_por_periodo
 import pandas as pd
 
 def test_estatisticas():

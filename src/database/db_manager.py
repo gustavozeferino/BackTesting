@@ -1,13 +1,12 @@
 import pandas as pd
 import sqlite3
 import os
-import config
+from src.utils import config
 
 def upload_excel_to_sqlite(excel_path, db_path=None, table_name=None):
     """
     Lê Excel, calcula sinais de Compra/Venda e salva no SQLite.
     """
-    import config # Garantindo que o config seja acessado
     
     if db_path is None:
         db_path = config.DB_PATH

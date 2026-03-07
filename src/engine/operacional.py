@@ -1,15 +1,15 @@
 import pandas as pd
 import math
 from datetime import time
-from db_manager import load_from_sqlite_to_pandas
-from trade import Trade, gerar_relatorio_estatistico, imprimir_stats, ajustar_preco_stop, detalhar_dia, comparar_resultados, detalhar_trades
-from trade import exportar_trades_para_excel
+from src.database.db_manager import load_from_sqlite_to_pandas
+from src.engine.trade import Trade, gerar_relatorio_estatistico, imprimir_stats, ajustar_preco_stop, detalhar_dia, comparar_resultados, detalhar_trades
+from src.engine.trade import exportar_trades_para_excel
 import json
 import yaml
 import os
-from analise_parametros import analisar_stop_otimo, analisar_parcial_otima, analisar_breakeven_otimo, resumo_analises, analisar_distribuicao_mae_mfe
-from relatorio_html import gerar_relatorio
-from trade import gerar_estatisticas_completas, analisar_por_periodo
+from src.analysis.analise_parametros import analisar_stop_otimo, analisar_parcial_otima, analisar_breakeven_otimo, resumo_analises, analisar_distribuicao_mae_mfe
+from src.reports.relatorio_html import gerar_relatorio
+from src.engine.trade import gerar_estatisticas_completas, analisar_por_periodo
 
 def carregar_configuracoes(arquivo):
     ext = os.path.splitext(arquivo)[1].lower()

@@ -1,4 +1,4 @@
-from operacional import ajustar_preco_stop
+from src.engine.operacional import ajustar_preco_stop
 
 def test_ajuste():
     # Test cases: (direcao, preco_stop, esperado)
