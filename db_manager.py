@@ -3,35 +3,55 @@ import sqlite3
 import os
 import config
 
-def upload_excel_to_sqlite(excel_path, db_path=None, table_name=config.DEFAULT_TABLE_NAME):
+def upload_excel_to_sqlite(excel_path, db_path=None, table_name=None):
     """
-    Reads an Excel file and uploads its content to a SQLite database.
+    Lê Excel, calcula sinais de Compra/Venda e salva no SQLite.
+    """
+    import config # Garantindo que o config seja acessado
     
-    Args:
-        excel_path (str): Path to the Excel file.
-        db_path (str, optional): Path to the SQLite database file. Defaults to config.DB_PATH.
-        table_name (str): Name of the table to create/append to.
-    """
     if db_path is None:
         db_path = config.DB_PATH
+    if table_name is None:
+        table_name = config.DEFAULT_TABLE_NAME
 
     if not os.path.exists(excel_path):
-        raise FileNotFoundError(f"Excel file not found at: {excel_path}")
+        raise FileNotFoundError(f"Arquivo Excel não encontrado: {excel_path}")
     
-    # Read the Excel file
+    # 1. Carga dos dados
     df = pd.read_excel(excel_path)
     
-    # Ensure date column is datetime objects
+    # 2. Tratamento de Data e Ordenação (Essencial para o shift de sinais)
     if 'Data' in df.columns:
         df['Data'] = pd.to_datetime(df['Data'], dayfirst=True)
     
-    # Connect to SQLite
-    conn = sqlite3.connect(db_path)
+    df = df.sort_values('Data').reset_index(drop=True)
+
+    # 3. Processamento de Sinais (Lógica que estava no seu main)
+    # Criando o Status de Quadrante (SQD)
+    df['SQD'] = '' 
+    df.loc[df['Close'] > df['LinhaQuant'], 'SQD'] = 'C'
+    df.loc[df['Close'] < df['LinhaQuant'], 'SQD'] = 'V'
     
+    # Criando o Sinal de Cruzamento (Sinal)
+    df['Sinal'] = 0
+    # Cruzamento para Cima: Agora é C e antes era V
+    df.loc[(df['SQD'] == 'C') & (df['SQD'].shift(1) == 'V'), 'Sinal'] = 1
+    # Cruzamento para Baixo: Agora é V e antes era C
+    df.loc[(df['SQD'] == 'V') & (df['SQD'].shift(1) == 'C'), 'Sinal'] = -1
+    
+    # 4. Persistência no SQLite
+    conn = sqlite3.connect(db_path)
     try:
-        # Save to SQLite
+        # Usamos replace para garantir que a tabela tenha as novas colunas
         df.to_sql(table_name, conn, if_exists='replace', index=False)
-        print(f"Successfully uploaded {len(df)} rows to {table_name} in {db_path}")
+        
+        # 5. Otimização: Criar índice na coluna Data para acelerar o backtest
+        cursor = conn.cursor()
+        cursor.execute(f"CREATE INDEX IF NOT EXISTS idx_data ON {table_name} (Data)")
+        
+        print(f"✅ Sucesso: {len(df)} linhas processadas e salvas em {table_name}.")
+        print(f"📊 Colunas geradas: SQD e Sinal (Baseadas na LinhaQuant).")
+        
     finally:
         conn.close()
 

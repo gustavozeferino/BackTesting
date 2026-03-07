@@ -264,12 +264,6 @@ def executar_backtest_completo(df, params, titulo="Backtest Completo", output_ht
 
 if __name__ == "__main__":
     df = load_from_sqlite_to_pandas().sort_values('Data').reset_index(drop=True)
-    df['SQD'] = '' 
-    df.loc[df['Close'] > df['LinhaQuant'], 'SQD'] = 'C'
-    df.loc[df['Close'] < df['LinhaQuant'], 'SQD'] = 'V'
-    df['Sinal'] = 0
-    df.loc[(df['SQD'] == 'C') & (df['SQD'].shift(1) == 'V'), 'Sinal'] = 1
-    df.loc[(df['SQD'] == 'V') & (df['SQD'].shift(1) == 'C'), 'Sinal'] = -1
     
     #resultado_base = executar_backtest_completo(
     #    df, 
@@ -277,7 +271,17 @@ if __name__ == "__main__":
     #    titulo="Estratégia Base - Backtest Completo"
     #)
     
-    resultado_base = simular_operacional(df, n_contratos=2, verbose=False, breakeven_pontos=300, tipo_parcial="risco", valores_parciais=[3, 5])
+    resultado_base = simular_operacional(
+        df,
+        n_contratos=1,
+        verbose=False,
+        breakeven_pontos=300,
+        tipo_parcial=None,
+        valores_parciais=None,
+        stop_max=600
+    )
+
+
     stats_c, resumo_d = gerar_estatisticas_completas(resultado_base)
     imprimir_stats(stats_c) 
     analisar_distribuicao_mae_mfe(resultado_base)
