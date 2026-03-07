@@ -15,7 +15,9 @@ def main():
     parser.add_argument("--upload", type=str, help="Upload Excel file to database (provide file path)")
     parser.add_argument("--run", action="store_true", help="Run the backtest simulation")
     parser.add_argument("--report", action="store_true", help="Generate HTML report from simulation results")
-    parser.add_argument("--optimize", action="store_true", help="Run parameter optimization analysis")
+    parser.add_argument("--optimize", action="store_true", help="Run parameter optimization analysis (simple)")
+    parser.add_argument("--ga", action="store_true", help="Run Genetic Algorithm optimizer (DEAP)")
+    parser.add_argument("--workers", type=int, default=None, help="Number of CPU workers for GA (default: max)")
     parser.add_argument("--all", action="store_true", help="Run full workflow (run, optimize, report)")
     
     # Parameters
@@ -65,6 +67,11 @@ def main():
     if (args.optimize or args.all) and results:
         resumo_analises(results)
         analisar_distribuicao_mae_mfe(results)
+
+    if args.ga:
+        print(f"\nStarting Genetic Algorithm Optimizer...")
+        from src.analysis.otimizador import otimizar
+        otimizar(df, n_workers=args.workers)
 
     if (args.report or args.all) and results:
         print(f"Generating HTML report: {args.output}")

@@ -1,0 +1,172 @@
+[
+    {
+        "rank": 1,
+        "fitness": 59.743900000000004,
+        "params": {
+            "n_contratos": 4,
+            "tipo_parcial": "fixa",
+            "valores_parciais": [
+                100,
+                150
+            ],
+            "breakeven_pontos": 500,
+            "stop_max": 650,
+            "horario_inicial": "10:15",
+            "horario_final": "18:15",
+            "verbose": false
+        }
+    },
+    {
+        "rank": 2,
+        "fitness": 59.22860000000001,
+        "params": {
+            "n_contratos": 4,
+            "tipo_parcial": "fixa",
+            "valores_parciais": [
+                100,
+                150
+            ],
+            "breakeven_pontos": 500,
+            "stop_max": 650,
+            "horario_inicial": "09:30",
+            "horario_final": "17:30",
+            "verbose": false
+        }
+    },
+    {
+        "rank": 3,
+        "fitness": 57.68399999999999,
+        "params": {
+            "n_contratos": 4,
+            "tipo_parcial": "fixa",
+            "valores_parciais": [
+                100,
+                150
+            ],
+            "breakeven_pontos": 350,
+            "stop_max": 650,
+            "horario_inicial": "09:30",
+            "horario_final": "17:30",
+            "verbose": false
+        }
+    },
+    {
+        "rank": 4,
+        "fitness": 56.99999999999999,
+        "params": {
+            "n_contratos": 4,
+            "tipo_parcial": "fixa",
+            "valores_parciais": [
+                100,
+                150
+            ],
+            "breakeven_pontos": 250,
+            "stop_max": 750,
+            "horario_inicial": "10:15",
+            "horario_final": "18:15",
+            "verbose": false
+        }
+    },
+    {
+        "rank": 5,
+        "fitness": 52.182900000000004,
+        "params": {
+            "n_contratos": 4,
+            "tipo_parcial": "fixa",
+            "valores_parciais": [
+                100,
+                200
+            ],
+            "breakeven_pontos": 450,
+            "stop_max": 650,
+            "horario_inicial": "10:15",
+            "horario_final": "18:15",
+            "verbose": false
+        }
+    },
+    {
+        "rank": 6,
+        "fitness": 44.415,
+        "params": {
+            "n_contratos": 4,
+            "tipo_parcial": "fixa",
+            "valores_parciais": [
+                100,
+                300
+            ],
+            "breakeven_pontos": 450,
+            "stop_max": 650,
+            "horario_inicial": "09:30",
+            "horario_final": "17:30",
+            "verbose": false
+        }
+    },
+    {
+        "rank": 7,
+        "fitness": 42.573299999999996,
+        "params": {
+            "n_contratos": 4,
+            "tipo_parcial": "fixa",
+            "valores_parciais": [
+                100,
+                350
+            ],
+            "breakeven_pontos": 450,
+            "stop_max": 650,
+            "horario_inicial": "09:00",
+            "horario_final": "16:45",
+            "verbose": false
+        }
+    },
+    {
+        "rank": 8,
+        "fitness": 41.6025,
+        "params": {
+            "n_contratos": 4,
+            "tipo_parcial": "fixa",
+            "valores_parciais": [
+                100,
+                300
+            ],
+            "breakeven_pontos": 450,
+            "stop_max": 650,
+            "horario_inicial": "10:15",
+            "horario_final": "18:15",
+            "verbose": false
+        }
+    },
+    {
+        "rank": 9,
+        "fitness": 41.580999999999996,
+        "params": {
+            "n_contratos": 4,
+            "tipo_parcial": "fixa",
+            "valores_parciais": [
+                100,
+                300
+            ],
+            "breakeven_pontos": 500,
+            "stop_max": 650,
+            "horario_inicial": "10:15",
+            "horario_final": "18:15",
+            "verbose": false
+        }
+    },
+    {
+        "rank": 10,
+        "fitness": 41.55949999999999,
+        "params": {
+            "n_contratos": 4,
+            "tipo_parcial": "fixa",
+            "valores_parciais": [
+                100,
+                300
+            ],
+            "breakeven_pontos": 450,
+            "stop_max": 700,
+            "horario_inicial": "10:15",
+            "horario_final": "18:15",
+            "verbose": false
+        }
+    }
+]

@@ -216,7 +216,7 @@ def gerar_estatisticas_completas(lista_trades):
             'Win Rate (%)', 'Profit Factor', 'Total Pontos', 'Média por Trade', 'Max Drawdown (Pts)',
             'Maior Vitória (pts)', 'Maior Derrota (pts)', 'Média Vencedores (pts)', 'Média Perdedores (pts)',
             'Payoff Ratio', 'Maior Sequência Ganhos', 'Maior Sequência Perdas', 'Recovery Factor',
-            'Sharpe Ratio', 'Sortino Ratio', 'Calmar Ratio', 'MAE Médio', 'MFE Médio',
+            'Sharpe Ratio', 'Sortino Ratio', 'Calmar Ratio', 'SQN', 'MAE Médio', 'MFE Médio',
             'MAE Médio — Vencedores', 'MAE Médio — Perdedores', 'MFE Médio — Vencedores',
             'MFE Efficiency (%)', 'MAE Efficiency (%)'
         ]}, pd.DataFrame()
@@ -269,6 +269,7 @@ def gerar_estatisticas_completas(lista_trades):
     recovery_factor = total_pontos / max_drawdown if max_drawdown > 0 else (float('inf') if total_pontos > 0 else 0)
     std_pontos = df['pontos'].std()
     sharpe_ratio = (df['pontos'].mean() / std_pontos * np.sqrt(252)) if std_pontos and not np.isnan(std_pontos) and std_pontos > 0 else 0
+    sqn = (expectativa_matematica / std_pontos) * np.sqrt(total_trades) if std_pontos and not np.isnan(std_pontos) and std_pontos > 0 else 0
     
     std_negativos = derrotas_e_empates['pontos'].std()
     sortino_ratio = (df['pontos'].mean() / std_negativos * np.sqrt(252)) if not np.isnan(std_negativos) and std_negativos > 0 else 0
@@ -310,6 +311,7 @@ def gerar_estatisticas_completas(lista_trades):
         'Sharpe Ratio': round(sharpe_ratio, 2),
         'Sortino Ratio': round(sortino_ratio, 2),
         'Calmar Ratio': round(calmar_ratio, 2),
+        'SQN': round(sqn, 2),
         'MAE Médio': round(mae_medio, 2),
         'MFE Médio': round(mfe_medio, 2),
         'MAE Médio — Vencedores': round(mae_medio_vencedores, 2),
