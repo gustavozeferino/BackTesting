@@ -149,6 +149,7 @@ class Trade:
         return {
             'direcao': 'Compra' if self.direcao == 1 else 'Venda',
             'risco': self.risco_pontos,
+            'n_contratos': self.n_contratos_total,
             'periodo': periodo,
             'entrada': self.ponto_entrada,
             'saida': self.ponto_saida,
@@ -283,10 +284,10 @@ def gerar_estatisticas_completas(lista_trades):
     mfe_medio_vencedores = vitorias['mfe'].mean() if total_vencedores > 0 else 0
     
     vitorias_mfe_valido = vitorias[vitorias['mfe'] > 0]
-    mfe_efficiency = (vitorias_mfe_valido['pontos'] / vitorias_mfe_valido['mfe'] * 100).mean() if len(vitorias_mfe_valido) > 0 else 0
+    mfe_efficiency = ((vitorias_mfe_valido['pontos'] / (vitorias_mfe_valido['n_contratos'] * vitorias_mfe_valido['mfe'])) * 100).mean() if len(vitorias_mfe_valido) > 0 else 0
     
     derrotas_mae_valido = derrotas_e_empates[derrotas_e_empates['risco'] > 0]
-    mae_efficiency = (derrotas_mae_valido['mae'].abs() / derrotas_mae_valido['risco'] * 100).mean() if len(derrotas_mae_valido) > 0 else 0
+    mae_efficiency = (derrotas_mae_valido['mae'].abs() / (derrotas_mae_valido['n_contratos'] * derrotas_mae_valido['risco']) * 100).mean() if len(derrotas_mae_valido) > 0 else 0
 
     stats_globais = {
         'Total Trades': total_trades,

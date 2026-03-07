@@ -273,7 +273,7 @@ if __name__ == "__main__":
     
     resultado_base = simular_operacional(
         df,
-        n_contratos=1,
+        n_contratos=2,
         verbose=False,
         breakeven_pontos=300,
         tipo_parcial=None,
