@@ -7,7 +7,7 @@ from trade import exportar_trades_para_excel
 import json
 import yaml
 import os
-from analise_parametros import analisar_stop_otimo, analisar_parcial_otima, analisar_breakeven_otimo, resumo_analises
+from analise_parametros import analisar_stop_otimo, analisar_parcial_otima, analisar_breakeven_otimo, resumo_analises, analisar_distribuicao_mae_mfe
 from relatorio_html import gerar_relatorio
 from trade import gerar_estatisticas_completas, analisar_por_periodo
 
@@ -66,13 +66,13 @@ def simular_operacional(timeframe_data,
                     if trade_atual.direcao == 1:
 
                         if candle['Max'] > (trade_atual.ponto_entrada + breakeven_pontos) and candle['Min'] > trade_atual.ponto_entrada:
-                            trade_atual.ponto_stop_atual = max(trade_atual.ponto_stop_atual, trade_atual.ponto_entrada+5)
+                            trade_atual.ponto_stop_atual = max(trade_atual.ponto_stop_atual, trade_atual.ponto_entrada+0)
                             trade_atual.breakeven_acionado = True
                             if verbose:
                                 print(f"Breakeven acionado para compra: {trade_atual.ponto_stop_atual}")
                     else:
                         if candle['Min'] < (trade_atual.ponto_entrada - breakeven_pontos) and candle['Max'] < trade_atual.ponto_entrada:
-                            trade_atual.ponto_stop_atual = min(trade_atual.ponto_stop_atual, trade_atual.ponto_entrada-5)
+                            trade_atual.ponto_stop_atual = min(trade_atual.ponto_stop_atual, trade_atual.ponto_entrada-0)
                             trade_atual.breakeven_acionado = True
                             if verbose:
                                 print(f"Breakeven acionado para venda: {trade_atual.ponto_stop_atual}")
@@ -250,11 +250,15 @@ if __name__ == "__main__":
     df.loc[(df['SQD'] == 'C') & (df['SQD'].shift(1) == 'V'), 'Sinal'] = 1
     df.loc[(df['SQD'] == 'V') & (df['SQD'].shift(1) == 'C'), 'Sinal'] = -1
     
-    resultado_base = executar_backtest_completo(
-        df, 
-        params={'n_contratos': 2, 'verbose': False}, 
-        titulo="Estratégia Base - Backtest Completo"
-    )
+    #resultado_base = executar_backtest_completo(
+    #    df, 
+    #    params={'n_contratos': 2, 'verbose': False}, 
+    #    titulo="Estratégia Base - Backtest Completo"
+    #)
     
+    resultado_base = simular_operacional(df, n_contratos=2, verbose=False, breakeven_pontos=300, tipo_parcial="risco", valores_parciais=[3, 5])
+    stats_c, resumo_d = gerar_estatisticas_completas(resultado_base)
+    imprimir_stats(stats_c) 
+    analisar_distribuicao_mae_mfe(resultado_base)
     # if resultado_base:
     #    exportar_trades_para_excel(resultado_base, "trades_base.xlsx")

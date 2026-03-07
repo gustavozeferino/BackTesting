@@ -138,3 +138,58 @@ def resumo_analises(lista_trades):
     print(f"\n[Break-even Ótimo]")
     print(f"Melhor BE (por Profit Factor): {melhor_be} pts")
     print("="*50 + "\n")
+
+def analisar_distribuicao_mae_mfe(lista_trades, percentis_alvo=[0.50, 0.75, 0.80, 0.85,0.90, 0.95, 0.99]):
+    """
+    Analisa a distribuição de MAE e MFE separando trades vencedores de perdedores.
+    Retorna um DataFrame formatado com os percentis em colunas.
+    """
+    if not lista_trades:
+        return pd.DataFrame()
+
+    # Converte lista de objetos Trade para DataFrame
+    df = pd.DataFrame([t.to_dict() for t in lista_trades])
+    
+    # Separação dos grupos
+    vencedores = df[df['pontos'] > 0]
+    perdedores = df[df['pontos'] <= 0]
+    
+    analises = []
+
+    # Dicionário de grupos para iterar
+    grupos = {
+        'MAE Vencedores': vencedores['mae'].abs(),
+        'MAE Perdedores': perdedores['mae'].abs(),
+        'MFE Vencedores': vencedores['mfe'],
+        'MFE Perdedores': perdedores['mfe']
+    }
+
+    for nome, dados in grupos.items():
+        if not dados.empty:
+            # Calcula os percentis solicitados
+            valores_percentis = dados.quantile(percentis_alvo).to_dict()
+            
+            # Formata a linha da tabela
+            linha = {'Métrica': nome}
+            for p in percentis_alvo:
+                col_name = f"P{int(p*100)}"
+                linha[col_name] = round(valores_percentis[p], 2)
+            
+            # Adiciona média para contexto extra
+            linha['Média'] = round(dados.mean(), 2)
+            analises.append(linha)
+
+    # Cria o DataFrame final
+    res_df = pd.DataFrame(analises)
+    
+    # Imprime os resultados formatados
+    print("\n" + "-"*70)
+    print("DISTRIBUIÇÃO DE MAE E MFE POR TIPO DE TRADE".center(70))
+    print("-"*70)
+    if not res_df.empty:
+        print(res_df.to_string(index=False))
+    else:
+        print("Dados insuficientes para gerar a distribuição.")
+    print("-"*70)
+
+    return res_df

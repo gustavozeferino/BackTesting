@@ -67,6 +67,57 @@ def load_from_sqlite_to_pandas(db_path=None, table_name=config.DEFAULT_TABLE_NAM
     finally:
         conn.close()
 
+def remover_duplicatas_sqlite(db_path=None, table_name=config.DEFAULT_TABLE_NAME):
+    """
+    Remove linhas duplicadas de uma tabela SQLite mantendo o registro original.
+    Considera duplicatas linhas que possuem todos os valores iguais.
+    """
+    if db_path is None:
+        db_path = config.DB_PATH
+
+    if not os.path.exists(db_path):
+        raise FileNotFoundError(f"Database file not found at: {db_path}")
+    
+    try:
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+
+        # 1. Contar total antes
+        cursor.execute(f"SELECT COUNT(*) FROM {table_name}")
+        total_antes = cursor.fetchone()[0]
+
+        # 2. Executar a remoção baseada no ROWID
+        # Esta query deleta todas as linhas cujo ROWID não seja o MENOR 
+        # para aquele grupo de valores idênticos.
+        query_delete = f"""
+            DELETE FROM {table_name}
+            WHERE rowid NOT IN (
+                SELECT MIN(rowid)
+                FROM {table_name}
+                GROUP BY Data, Open, Max, Min, Close, MME52, VWAP, Contador, StopATR3, LinhaQuant, OBV, OBVMME52, OBVMME200
+            )
+        """
+        
+        cursor.execute(query_delete)
+        linhas_removidas = cursor.rowcount
+        
+        # 3. Commitar e Otimizar o arquivo do banco (opcional mas recomendado)
+        conn.commit()
+        cursor.execute("VACUUM") 
+        
+        print(f"--- Limpeza Concluída ---")
+        print(f"Registros processados: {total_antes}")
+        print(f"Linhas duplicadas removidas: {linhas_removidas}")
+        print(f"Registros restantes: {total_antes - linhas_removidas}")
+
+        conn.close()
+        return linhas_removidas
+
+    except sqlite3.Error as e:
+        print(f"Erro ao acessar o banco de dados: {e}")
+        return 0        
+
+
 if __name__ == "__main__":
     # Example usage using the real file provided by the user previously
     excel_file = os.path.join(config.DATA_DIR, 'WIN_2026_TF1.xlsx')
@@ -74,6 +125,7 @@ if __name__ == "__main__":
         upload_excel_to_sqlite(excel_file)
         df = load_from_sqlite_to_pandas()
         print(df.head())
+        remover_duplicatas_sqlite(db_path=None, table_name=config.DEFAULT_TABLE_NAME)
     else:
         print(f"File not found for auto-execution: {excel_file}")
 
