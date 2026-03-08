@@ -209,196 +209,33 @@ def gerar_relatorio_estatistico(lista_trades):
 
     return stats_globais, resumo_diario
 
+from src.engine.stats import estatisticas_trades, segmentar_estatisticas
+
 def gerar_estatisticas_completas(lista_trades):
-    if not lista_trades:
-        return {k: 0 for k in [
-            'Total Trades', 'Total Vencedores', 'Total Perdedores', 'Total Empates',
-            'Win Rate (%)', 'Profit Factor', 'Total Pontos', 'Média por Trade', 'Max Drawdown (Pts)',
-            'Maior Vitória (pts)', 'Maior Derrota (pts)', 'Média Vencedores (pts)', 'Média Perdedores (pts)',
-            'Payoff Ratio', 'Maior Sequência Ganhos', 'Maior Sequência Perdas', 'Recovery Factor',
-            'Sharpe Ratio', 'Sortino Ratio', 'Calmar Ratio', 'SQN', 'MAE Médio', 'MFE Médio',
-            'MAE Médio — Vencedores', 'MAE Médio — Perdedores', 'MFE Médio — Vencedores',
-            'MFE Efficiency (%)', 'MAE Efficiency (%)'
-        ]}, pd.DataFrame()
-
+    """Bridge for backward compatibility."""
+    stats = estatisticas_trades(lista_trades)
+    # The old function returned (stats_dict, resumo_diario)
+    # We can generate a simple daily summary here or just return empty df if not needed
     df = pd.DataFrame([t.to_dict() for t in lista_trades])
-    df['inicio'] = pd.to_datetime(df['inicio'])
-    df['Data'] = df['inicio'].dt.date
-
-    total_trades = len(df)
-    vitorias = df[df['pontos'] > 0]
-    derrotas = df[df['pontos'] < 0]
-    empates = df[df['pontos'] == 0]
-    derrotas_e_empates = df[df['pontos'] <= 0]
-    
-    total_vencedores = len(vitorias)
-    total_perdedores = len(derrotas)
-    total_empates = len(empates)
-
-    win_rate = (total_vencedores / total_trades) * 100 if total_trades > 0 else 0
-    soma_ganhos = vitorias['pontos'].sum()
-    soma_perdas = abs(derrotas_e_empates['pontos'].sum())
-    profit_factor = soma_ganhos / soma_perdas if soma_perdas > 0 else float('inf')
-    total_pontos = df['pontos'].sum()
-    expectativa_matematica = total_pontos / total_trades if total_trades > 0 else 0
-    
-    df['saldo_acumulado'] = df['pontos'].cumsum()
-    df['max_acumulado'] = df['saldo_acumulado'].cummax()
-    df['drawdown'] = df['max_acumulado'] - df['saldo_acumulado']
-    max_drawdown = df['drawdown'].max()
-    
-    maior_vitoria = vitorias['pontos'].max() if total_vencedores > 0 else 0
-    maior_derrota = derrotas['pontos'].min() if total_perdedores > 0 else 0
-    media_vencedores = vitorias['pontos'].mean() if total_vencedores > 0 else 0
-    media_perdedores = derrotas_e_empates['pontos'].mean() if len(derrotas_e_empates) > 0 else 0
-    payoff_ratio = media_vencedores / abs(media_perdedores) if media_perdedores != 0 else float('inf')
-    
-    # Sequências
-    sinais = np.sign(df['pontos'])
-    sinais = sinais.replace(0, -1)  # Considera 0 como perda para sequência de perdas
-    blocos = (sinais != sinais.shift()).cumsum()
-    contagens_sequencias = df.groupby(blocos)['pontos'].apply(lambda x: (np.sign(x.iloc[0]), len(x)))
-    
-    maior_seq_ganhos = 0
-    maior_seq_perdas = 0
-    for sinal_seq, tamanho in contagens_sequencias:
-        if sinal_seq > 0 and tamanho > maior_seq_ganhos: maior_seq_ganhos = tamanho
-        if sinal_seq <= 0 and tamanho > maior_seq_perdas: maior_seq_perdas = tamanho
-
-    # Risco/Performance
-    recovery_factor = total_pontos / max_drawdown if max_drawdown > 0 else (float('inf') if total_pontos > 0 else 0)
-    std_pontos = df['pontos'].std()
-    sharpe_ratio = (df['pontos'].mean() / std_pontos * np.sqrt(252)) if std_pontos and not np.isnan(std_pontos) and std_pontos > 0 else 0
-    sqn = (expectativa_matematica / std_pontos) * np.sqrt(total_trades) if std_pontos and not np.isnan(std_pontos) and std_pontos > 0 else 0
-    
-    std_negativos = derrotas_e_empates['pontos'].std()
-    sortino_ratio = (df['pontos'].mean() / std_negativos * np.sqrt(252)) if not np.isnan(std_negativos) and std_negativos > 0 else 0
-    
-    qtd_dias = df['Data'].nunique()
-    calmar_ratio = (total_pontos / qtd_dias) * 252 / max_drawdown if qtd_dias > 0 and max_drawdown > 0 else 0
-    
-    # MAE/MFE
-    mae_medio = df['mae'].mean() if total_trades > 0 else 0
-    mfe_medio = df['mfe'].mean() if total_trades > 0 else 0
-    mae_medio_vencedores = vitorias['mae'].mean() if total_vencedores > 0 else 0
-    mae_medio_perdedores = derrotas_e_empates['mae'].mean() if len(derrotas_e_empates) > 0 else 0
-    mfe_medio_vencedores = vitorias['mfe'].mean() if total_vencedores > 0 else 0
-    
-    vitorias_mfe_valido = vitorias[vitorias['mfe'] > 0]
-    mfe_efficiency = ((vitorias_mfe_valido['pontos'] / (vitorias_mfe_valido['n_contratos'] * vitorias_mfe_valido['mfe'])) * 100).mean() if len(vitorias_mfe_valido) > 0 else 0
-    
-    derrotas_mae_valido = derrotas_e_empates[derrotas_e_empates['risco'] > 0]
-    mae_efficiency = (derrotas_mae_valido['mae'].abs() / (derrotas_mae_valido['n_contratos'] * derrotas_mae_valido['risco']) * 100).mean() if len(derrotas_mae_valido) > 0 else 0
-
-    stats_globais = {
-        'Total Trades': total_trades,
-        'Total Vencedores': total_vencedores,
-        'Total Perdedores': total_perdedores,
-        'Total Empates': total_empates,
-        'Win Rate (%)': round(win_rate, 2),
-        'Profit Factor': profit_factor if profit_factor != float('inf') else 'inf',
-        'Total Pontos': round(total_pontos, 2),
-        'Média por Trade': round(expectativa_matematica, 2),
-        'Max Drawdown (Pts)': round(max_drawdown, 2),
-        'Maior Vitória (pts)': round(maior_vitoria, 2),
-        'Maior Derrota (pts)': round(maior_derrota, 2),
-        'Média Vencedores (pts)': round(media_vencedores, 2),
-        'Média Perdedores (pts)': round(media_perdedores, 2),
-        'Payoff Ratio': round(payoff_ratio, 2) if payoff_ratio != float('inf') else 'inf',
-        'Maior Sequência Ganhos': maior_seq_ganhos,
-        'Maior Sequência Perdas': maior_seq_perdas,
-        'Recovery Factor': round(recovery_factor, 2) if recovery_factor != float('inf') else 'inf',
-        'Sharpe Ratio': round(sharpe_ratio, 2),
-        'Sortino Ratio': round(sortino_ratio, 2),
-        'Calmar Ratio': round(calmar_ratio, 2),
-        'SQN': round(sqn, 2),
-        'MAE Médio': round(mae_medio, 2),
-        'MFE Médio': round(mfe_medio, 2),
-        'MAE Médio — Vencedores': round(mae_medio_vencedores, 2),
-        'MAE Médio — Perdedores': round(mae_medio_perdedores, 2),
-        'MFE Médio — Vencedores': round(mfe_medio_vencedores, 2),
-        'MFE Efficiency (%)': round(mfe_efficiency, 2),
-        'MAE Efficiency (%)': round(mae_efficiency, 2)
-    }
-
-    resumo_diario = df.groupby('Data').agg(
-        qtd_trades=('pontos', 'count'),
-        saldo_pontos=('pontos', 'sum'),
-        mfe_medio=('mfe', 'mean'),
-        mae_medio=('mae', 'mean')
-    ).round(2).reset_index()
-
-    return stats_globais, resumo_diario
+    if not df.empty:
+        df['inicio'] = pd.to_datetime(df['inicio'])
+        df['Data'] = df['inicio'].dt.date
+        resumo_diario = df.groupby('Data').agg(
+            qtd_trades=('pontos', 'count'),
+            saldo_pontos=('pontos', 'sum'),
+            mfe_medio=('mfe', 'mean'),
+            mae_medio=('mae', 'mean')
+        ).round(2).reset_index()
+    else:
+        resumo_diario = pd.DataFrame()
+    return stats, resumo_diario
 
 def analisar_por_periodo(lista_trades):
-    if not lista_trades:
-        return pd.DataFrame()
-
-    df = pd.DataFrame([t.to_dict() for t in lista_trades])
-    
-    # Calcular métricas por período
-    periodos = []
-    for periodo in ['MANHA', 'ALMOCO', 'TARDE']:
-        df_per = df[df['periodo'] == periodo]
-        total_trades = len(df_per)
-        if total_trades > 0:
-            vitorias = len(df_per[df_per['pontos'] > 0])
-            win_rate = (vitorias / total_trades) * 100
-            
-            soma_ganhos = df_per[df_per['pontos'] > 0]['pontos'].sum()
-            soma_perdas = abs(df_per[df_per['pontos'] <= 0]['pontos'].sum())
-            profit_factor = soma_ganhos / soma_perdas if soma_perdas > 0 else float('inf')
-            
-            media_pontos = df_per['pontos'].mean()
-            total_pontos = df_per['pontos'].sum()
-            
-            # Max drawdown do período
-            df_per = df_per.copy()
-            df_per['saldo_acumulado'] = df_per['pontos'].cumsum()
-            df_per['max_acumulado'] = df_per['saldo_acumulado'].cummax()
-            df_per['drawdown'] = df_per['max_acumulado'] - df_per['saldo_acumulado']
-            max_drawdown = df_per['drawdown'].max()
-            
-            periodos.append({
-                'periodo': periodo,
-                'total_trades': total_trades,
-                'win_rate': round(win_rate, 2),
-                'profit_factor': round(profit_factor, 2) if profit_factor != float('inf') else 'inf',
-                'media_pontos': round(media_pontos, 2),
-                'total_pontos': round(total_pontos, 2),
-                'max_drawdown': round(max_drawdown, 2)
-            })
-    
-    # Adicionar o TOTAL
-    total_trades = len(df)
-    if total_trades > 0:
-        vitorias = len(df[df['pontos'] > 0])
-        win_rate = (vitorias / total_trades) * 100
-        
-        soma_ganhos = df[df['pontos'] > 0]['pontos'].sum()
-        soma_perdas = abs(df[df['pontos'] <= 0]['pontos'].sum())
-        profit_factor = soma_ganhos / soma_perdas if soma_perdas > 0 else float('inf')
-        
-        media_pontos = df['pontos'].mean()
-        total_pontos = df['pontos'].sum()
-        
-        df = df.copy()
-        df['saldo_acumulado'] = df['pontos'].cumsum()
-        df['max_acumulado'] = df['saldo_acumulado'].cummax()
-        df['drawdown'] = df['max_acumulado'] - df['saldo_acumulado']
-        max_drawdown = df['drawdown'].max()
-        
-        periodos.append({
-            'periodo': 'TOTAL',
-            'total_trades': total_trades,
-            'win_rate': round(win_rate, 2),
-            'profit_factor': round(profit_factor, 2) if profit_factor != float('inf') else 'inf',
-            'media_pontos': round(media_pontos, 2),
-            'total_pontos': round(total_pontos, 2),
-            'max_drawdown': round(max_drawdown, 2)
-        })
-
-    return pd.DataFrame(periodos)
+    """Bridge for backward compatibility using segmentar_estatisticas."""
+    df_seg = segmentar_estatisticas(lista_trades, segmentos=['hora'], min_trades=1)
+    return df_seg
+# funções 'gerar_estatisticas_completas' e 'analisar_por_periodo' agora são wrappers
+# definidos no início do arquivo para manter compatibilidade e evitar redundância.
 
 
 def comparar_resultados(lista_stats, nomes=None, verbose=True):

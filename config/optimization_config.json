@@ -1,6 +1,6 @@
 {
-    "populacao": 5000,
-    "geracoes": 5,
+    "populacao": 10,
+    "geracoes": 2,
     "restricoes": {
         "min_trades": 50
     },

@@ -289,6 +289,6 @@ if __name__ == "__main__":
     # if resultado_base:
     #    exportar_trades_para_excel(resultado_base, "trades_base.xlsx")
 
-    output_html = '/output/relatorio_melhor_solucao.html'
+    output_html = 'output/relatorio_melhor_solucao.html'
     gerar_relatorio(resultado_base, output_html, titulo="Solução com melhor fator de lucro")
     print(f"\n[OK] Relatório HTML gerado: {output_html}")
