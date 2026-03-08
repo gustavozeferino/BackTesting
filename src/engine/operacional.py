@@ -265,30 +265,18 @@ def executar_backtest_completo(df, params, titulo="Backtest Completo", output_ht
 if __name__ == "__main__":
     df = load_from_sqlite_to_pandas().sort_values('Data').reset_index(drop=True)
     
-    #resultado_base = executar_backtest_completo(
-    #    df, 
-    #    params={'n_contratos': 2, 'verbose': False}, 
-    #    titulo="Estratégia Base - Backtest Completo"
-    #)
-    
-    resultado_base = simular_operacional(
+    trades = simular_operacional(
         df,
         n_contratos=2,
         verbose=False,
         breakeven_pontos=200,
         tipo_parcial=None,
         valores_parciais=None,
-        stop_max=None,
-        horario_inicial=time(11, 45),
-        horario_final=time(17, 30),
+        stop_max=500,
+        horario_inicial=time(9, 15),
+        horario_final=time(17, 45),
         horario_encerramento=time(18, 00))
 
-    stats_c, resumo_d = gerar_estatisticas_completas(resultado_base)
-    imprimir_stats(stats_c) 
-    analisar_distribuicao_mae_mfe(resultado_base)
-    # if resultado_base:
-    #    exportar_trades_para_excel(resultado_base, "trades_base.xlsx")
-
-    output_html = 'output/relatorio_melhor_solucao.html'
-    gerar_relatorio(resultado_base, output_html, titulo="Solução com melhor fator de lucro")
+    output_html = 'output/relatorio_bt_completo.html'
+    gerar_relatorio(trades, output_html, titulo="Backtest Completo")
     print(f"\n[OK] Relatório HTML gerado: {output_html}")

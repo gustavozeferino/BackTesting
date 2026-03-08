@@ -62,27 +62,22 @@ def main():
 
     if args.run or args.all:
         print(f"Running simulation with {args.contracts} contracts...")
-        #results = simular_operacional(df, **params)
 
-        results = simular_operacional(
+        trades = simular_operacional(
             df,
             n_contratos=2,
             verbose=False,
             breakeven_pontos=200,
             tipo_parcial=None,
             valores_parciais=None,
-            stop_max=None,
-            horario_inicial=time(11, 45),
-            horario_final=time(17, 30),
+            stop_max=500,
+            horario_inicial=time(9, 15),
+            horario_final=time(17, 45),
             horario_encerramento=time(18, 00))
 
-        stats_c, resumo_d = gerar_estatisticas_completas(results)
-        imprimir_stats(stats_c) 
-        print(f"Simulation finished. {len(results)} trades executed.")
-
-    if (args.optimize or args.all) and results:
-        resumo_analises(results)
-        analisar_distribuicao_mae_mfe(results)
+        output_html = 'output/relatorio_bt_completo.html'
+        gerar_relatorio(trades, output_html, titulo="Backtest Completo")
+        print(f"\n[OK] Relatório HTML gerado: {output_html}")
 
     if args.ga:
         print(f"\nStarting Genetic Algorithm Optimizer...")
