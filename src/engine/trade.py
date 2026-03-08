@@ -296,7 +296,7 @@ def gerar_estatisticas_completas(lista_trades):
         'Total Perdedores': total_perdedores,
         'Total Empates': total_empates,
         'Win Rate (%)': round(win_rate, 2),
-        'Profit Factor': round(profit_factor, 2) if profit_factor != float('inf') else 'inf',
+        'Profit Factor': profit_factor if profit_factor != float('inf') else 'inf',
         'Total Pontos': round(total_pontos, 2),
         'Média por Trade': round(expectativa_matematica, 2),
         'Max Drawdown (Pts)': round(max_drawdown, 2),
@@ -401,40 +401,51 @@ def analisar_por_periodo(lista_trades):
     return pd.DataFrame(periodos)
 
 
-def comparar_resultados(resultados, nomes=None):
+def comparar_resultados(lista_stats, nomes=None, verbose=True):
     """
-    Compara dois ou mais dataframes de resumo diário gerados por `gerar_relatorio_estatistico`.
-    Cada dataframe deve conter as colunas: 'Data', 'qtd_trades', 'saldo_pontos', 'mfe_medio', 'mae_medio'.
-    O parâmetro `nomes` deve ser uma lista com o nome a ser exibido para cada resumo.
-    Se a lista for vazia ou None, os nomes serão gerados como "Operacional 1", "Operacional 2", ...
-    A função imprime uma tabela onde a primeira coluna é o nome e as demais colunas são os
-    valores numéricos alinhados à direita.
+    Gera uma tabela comparativa a partir de uma lista de dicionários de estatísticas
+    (retornados por gerar_estatisticas_completas).
     """
-    if not resultados:
-        print("Nenhum resumo fornecido.")
-        return
+    if not lista_stats:
+        return pd.DataFrame()
 
-    if nomes is None or len(nomes) == 0:
-        nomes = [f"Operacional {i+1}" for i in range(len(resultados))]
-    elif len(nomes) != len(resultados):
-        print("A quantidade de nomes não corresponde ao número de resumos.")
-        return
+    if nomes is None:
+        nomes = [f"Simulação {i+1}" for i in range(len(lista_stats))]
+
+    colunas_desejadas = [
+        "Rank", "Total Trades", "Total Empates", "Win Rate (%)", "Profit Factor",
+        "Total Pontos", "Média por Trade", "Max Drawdown (Pts)", "Maior Vitória (pts)",
+        "Maior Derrota (pts)", "Média Vencedores (pts)", "Média Perdedores (pts)",
+        "Payoff Ratio", "Maior Sequência Ganhos", "Maior Sequência Perdas",
+        "Recovery Factor", "Sortino Ratio"
+    ]
 
     linhas = []
+    for i, stats in enumerate(lista_stats):
+        # Filtra apenas as colunas desejadas que existirem no dict
+        dados = {col: stats.get(col, 0) for col in colunas_desejadas}
+        # Se Rank não estiver no dict, usa o índice
+        if "Rank" not in stats:
+            dados["Rank"] = i + 1
+        
+        # Adiciona o nome/identificador
+        dados["Setup"] = nomes[i]
+        linhas.append(dados)
 
-    for resultado, nome in zip(resultados, nomes):
-        linha = pd.DataFrame([resultado])
-        linha.insert(0, "Operacional", nome)
-        linhas.append(linha)
+    df_comparativo = pd.DataFrame(linhas)
+    
+    # Reordenar para colocar Setup e Rank primeiro
+    cols = ["Setup", "Rank"] + [c for c in colunas_desejadas if c not in ["Rank"]]
+    df_comparativo = df_comparativo[cols]
 
-    tabela = pd.concat(linhas, ignore_index=True)
+    if verbose:
+        print("\n" + "="*120)
+        print(f"{' '*45}TABELA COMPARATIVA DE RESULTADOS")
+        print("="*120)
+        print(df_comparativo.to_string(index=False, justify='right'))
+        print("="*120 + "\n")
 
-    # Ordena colunas para garantir ordem desejada
-    # cols = ["Operacional"] + [c for c in tabela.columns if c != "Operacional"]
-    # tabela = tabela[cols]
-
-    # Imprime com alinhamento à direita para números
-    print(tabela.to_string(index=False, justify='right'))
+    return df_comparativo
 
 def imprimir_stats(stats):
     if not stats: return

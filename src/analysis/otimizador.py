@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 from deap import base, creator, tools, algorithms
 from src.engine.operacional import simular_operacional
-from src.engine.trade import gerar_estatisticas_completas, imprimir_stats
+from src.engine.trade import gerar_estatisticas_completas, imprimir_stats, comparar_resultados
 from src.analysis.analise_parametros import analisar_distribuicao_mae_mfe
 from src.reports.relatorio_html import gerar_relatorio
 
@@ -151,9 +151,7 @@ def configurar_deap():
     for i in range(len(max_idx)):
         total_combinacoes *= (max_idx[i] + 1)
     
-    print(f"\n====================================================")
     print(f"Espaço Amostral de Parâmetros: {total_combinacoes:,} combinações")
-    print(f"====================================================\n")
 
     toolbox.register("attr_0", random.randint, 0, max_idx[0])
     toolbox.register("attr_1", random.randint, 0, max_idx[1])
@@ -191,7 +189,7 @@ class Evaluator:
         return fitness_function(individual, self.df)
 
 # --- RELATÓRIO E EXPORTAÇÃO ---
-def gerar_relatorio_otimizacao(results, logbook, top_n=20):
+def gerar_relatorio_otimizacao(results, logbook, df_comparativo=None, top_n=20):
     """Gera o HTML e o gráfico de convergência."""
     os.makedirs('output', exist_ok=True)
     
@@ -214,16 +212,24 @@ def gerar_relatorio_otimizacao(results, logbook, top_n=20):
     # 2. HTML
     html = """<html><head><meta charset="utf-8"><style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #121212; color: #e0e0e0; padding: 30px; }
-        h1 { color: #00ff88; text-align: center; }
+        h1, h2 { color: #00ff88; text-align: center; }
         table { width: 100%; border-collapse: collapse; margin: 25px 0; background: #1e1e1e; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        th, td { padding: 15px; border: 1px solid #333; text-align: left; }
-        th { background: #252525; color: #00ff88; text-transform: uppercase; font-size: 0.9em; letter-spacing: 1px; }
+        th, td { padding: 12px; border: 1px solid #333; text-align: left; font-size: 0.9em; }
+        th { background: #252525; color: #00ff88; text-transform: uppercase; letter-spacing: 1px; }
         tr:hover { background: #2a2a2a; }
-        .fitness { font-weight: bold; color: #00ff88; font-family: monospace; font-size: 1.1em; }
+        .fitness { font-weight: bold; color: #00ff88; font-family: monospace; }
         .rank-1 { background: rgba(0, 255, 136, 0.1) !important; }
         img { display: block; margin: 20px auto; max-width: 90%; border: 1px solid #333; border-radius: 5px; }
     </style></head><body>
     <h1>Otimização GA - Top Configurações</h1>
+    """
+
+    if df_comparativo is not None:
+        html += "<h2>Tabela Comparativa de Performance</h2>"
+        html += df_comparativo.to_html(index=False, classes='comparativo')
+
+    html += """
+    <h2>Parâmetros Encontrados</h2>
     <table><tr><th>Rank</th><th>Fitness</th><th>Contratos</th><th>Parcial</th><th>Valores</th><th>BE</th><th>StopMax</th><th>Horário Operacional</th></tr>"""
     
     for i, r in enumerate(results[:top_n]):
@@ -327,13 +333,18 @@ def otimizar(df, n_workers=None, pop_size=None, ngen=None):
     with open('output/optimization_result.json', 'w', encoding='utf-8') as f:
         json.dump(results, f, indent=4)
         
+    # Comparativo dos Melhores
+    print("\nGerando Tabela Comparativa dos Top Resultados...")
+    df_comparativo = comparar_resultados_otimizacao(df, top_n=10)
+
     # Gerar Relatorio e Grafico
-    gerar_relatorio_otimizacao(results, logbook, top_n=20)
+    gerar_relatorio_otimizacao(results, logbook, df_comparativo=df_comparativo, top_n=20)
     
     # EXIBIR ESTATISTICAS COMPLETAS DO MELHOR RESULTADO
     print("\n" + "="*50)
     print("MELHOR SOLUÇÃO ENCONTRADA - ESTATÍSTICAS DETALHADAS")
     print("="*50)
+    # hof[0] é o melhor indivíduo
     best_params = decodificar_individuo(hof[0])
     best_trades = simular_operacional(df, **best_params)
     stats_c, _ = gerar_estatisticas_completas(best_trades)
@@ -341,11 +352,43 @@ def otimizar(df, n_workers=None, pop_size=None, ngen=None):
     analisar_distribuicao_mae_mfe(best_trades)
     imprimir_parametros_trading(results[0]['params'])
 
-    output_html = '/output/relatorio_melhor_solucao.html'
-    gerar_relatorio(best_trades, output_html, titulo="Solução com melhor fator de lucro")
+    output_html = 'output/relatorio_melhor_solucao.html'
+    gerar_relatorio(best_trades, output_html, titulo="Solução com melhor fator de lucro", df_comparativo=df_comparativo)
     print(f"\n[OK] Relatório HTML gerado: {output_html}")
 
     return results
+
+def comparar_resultados_otimizacao(df, config_file='output/optimization_result.json', top_n=10):
+    """
+    Pega as configurações de optimization_result.json, roda simulações
+    e gera a tabela comparativa.
+    """
+    try:
+        with open(config_file, 'r', encoding='utf-8') as f:
+            results = json.load(f)
+    except Exception as e:
+        print(f"Erro ao carregar resultados para comparativo: {e}")
+        return None
+
+    lista_stats = []
+    nomes = []
+
+    for res in results[:top_n]:
+        params = res['params']
+        # Precisamos converter strings de horário de volta para datetime.time
+        params_copy = params.copy()
+        params_copy['horario_inicial'] = datetime.strptime(params['horario_inicial'], "%H:%M").time()
+        params_copy['horario_final'] = datetime.strptime(params['horario_final'], "%H:%M").time()
+        
+        trades = simular_operacional(df, **params_copy)
+        stats_c, _ = gerar_estatisticas_completas(trades)
+        
+        # Injetar Rank para o comparar_resultados reconhecer
+        stats_c['Rank'] = res['rank']
+        lista_stats.append(stats_c)
+        nomes.append(f"{res['rank']}")
+
+    return comparar_resultados(lista_stats, nomes=nomes, verbose=True)
 
 
 def imprimir_parametros_trading(params):

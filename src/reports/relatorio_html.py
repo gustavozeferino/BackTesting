@@ -86,15 +86,14 @@ def gerar_grafico_scatter_mae_mfe(df):
     
     return fig_to_base64(fig)
 
-def gerar_relatorio(lista_trades, output_path='relatorio.html', titulo='Relatório de Backtesting'):
+def gerar_relatorio(lista_trades, output_path='relatorio.html', titulo='Relatório de Backtesting', df_comparativo=None):
     if not lista_trades:
         with open(output_path, 'w', encoding='utf-8') as f:
             f.write("<html><body><h1>Nenhum trade para relatar</h1></body></html>")
         return output_path
         
     df_trades = pd.DataFrame([t.to_dict() for t in lista_trades])
-    # Calcula coluna de acumulado necessária pros gráficos gerais (mas já temos isso feito internamente em trade.py, 
-    # porém precisamos refazer pro df local plotar os gráficos simples)
+    # Calcula coluna de acumulado necessária pros gráficos gerais
     df_trades['saldo_acumulado'] = df_trades['pontos'].cumsum()
     df_trades['max_acumulado'] = df_trades['saldo_acumulado'].cummax()
     
@@ -117,21 +116,23 @@ def gerar_relatorio(lista_trades, output_path='relatorio.html', titulo='Relatór
         <style>
             body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #fdfdfd; margin: 0; padding: 20px; color: #333; }}
             .container {{ max-width: 1200px; margin: auto; }}
-            h1, h2, h3 {{ border-bottom: 2px solid #eaeaea; padding-bottom: 10px; }}
-            .nav {{ display: flex; gap: 15px; margin-bottom: 20px; background: #fff; padding: 10px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }}
-            .nav a {{ text-decoration: none; color: #007bff; font-weight: bold; }}
+            h1, h2, h3 {{ border-bottom: 2px solid #eaeaea; padding-bottom: 10px; margin-top: 40px; }}
+            .nav {{ display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 20px; background: #fff; padding: 10px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100; }}
+            .nav a {{ text-decoration: none; color: #007bff; font-weight: bold; font-size: 14px; }}
             .cards {{ display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 30px; }}
             .card {{ background: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); flex: 1; min-width: 150px; text-align: center; border-top: 4px solid #007bff; }}
-            .card h4 {{ margin: 0 0 10px 0; color: #666; font-size: 14px; text-transform: uppercase; }}
+            .card h4 {{ margin: 0 0 10px 0; color: #666; font-size: 12px; text-transform: uppercase; }}
             .card .value {{ font-size: 24px; font-weight: bold; color: #333; }}
-            .section {{ background: #fff; padding: 20px; border-radius: 8px; margin-bottom: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }}
-            img {{ max-width: 100%; height: auto; border: 1px solid #ddd; border-radius: 4px; }}
-            table {{ width: 100%; border-collapse: collapse; margin-top: 20px; }}
-            th, td {{ padding: 12px 15px; text-align: left; border-bottom: 1px solid #ddd; font-size: 14px; }}
-            th {{ background-color: #f4f4f4; color: #333; }}
-            tr:hover {{ background-color: #f9f9f9; }}
-            .positivo {{ color: green; font-weight: bold; }}
-            .negativo {{ color: red; font-weight: bold; }}
+            .section {{ background: #fff; padding: 20px; border-radius: 8px; margin-bottom: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); overflow-x: auto; }}
+            img {{ max-width: 100%; height: auto; border: 1px solid #ddd; border-radius: 4px; display: block; margin: 10px auto; }}
+            table {{ width: 100%; border-collapse: collapse; margin-top: 10px; min-width: 600px; }}
+            th, td {{ padding: 10px 12px; text-align: left; border-bottom: 1px solid #eee; font-size: 13px; }}
+            th {{ background-color: #f8f9fa; color: #333; font-weight: 600; text-transform: uppercase; font-size: 11px; }}
+            tr:hover {{ background-color: #fcfcfc; }}
+            .positivo {{ color: #28a745; font-weight: bold; }}
+            .negativo {{ color: #dc3545; font-weight: bold; }}
+            .comparativo-container table {{ font-size: 11px; }}
+            .comparativo-container th {{ background: #e9ecef; }}
         </style>
     </head>
     <body>
@@ -139,14 +140,25 @@ def gerar_relatorio(lista_trades, output_path='relatorio.html', titulo='Relatór
             <h1>{titulo}</h1>
             
             <div class="nav">
-                <a href="#resumo">Resumo</a>
-                <a href="#curva">Curva de Patrimônio</a>
-                <a href="#estatisticas">Estatísticas Completas</a>
-                <a href="#periodos">Análise de Períodos</a>
-                <a href="#maemfe">Distribuição MAE/MFE</a>
-                <a href="#trades">Lista de Trades</a>
+                <a href="#resumo">Painel</a>
+                {('<a href="#comparativo">Comparativo</a>' if df_comparativo is not None else '')}
+                <a href="#curva">Gráfico</a>
+                <a href="#estatisticas">Estatísticas</a>
+                <a href="#periodos">Períodos</a>
+                <a href="#maemfe">MAE/MFE</a>
+                <a href="#trades">Trades</a>
             </div>
-            
+    """
+
+    if df_comparativo is not None:
+        html += f"""
+            <div id="comparativo" class="section comparativo-container">
+                <h2>Tabela Comparativa de Estratégias</h2>
+                {df_comparativo.to_html(index=False)}
+            </div>
+        """
+
+    html += f"""
             <div id="resumo" class="cards">
                 <div class="card">
                     <h4>Win Rate</h4>
